@@ -1,8 +1,10 @@
 name: SonarCloud Analysis
 
 on:
-  pull_request:
+  push:
     branches:
+      - main
+      - dev
       - feature/**
       - hotfix/**
 
