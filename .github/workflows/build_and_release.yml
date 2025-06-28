@@ -96,6 +96,7 @@ jobs:
       - name: Set up Git identity
         run: |
           cd gitops
+          ls -al
           git config user.name "Duong Aity"
           git config user.email "duongaity@gmail.com"
 
