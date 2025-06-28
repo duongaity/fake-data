@@ -1,0 +1,72 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+
+# Crash log
+crash.log
+
+# Terraform plan files
+*.tfplan
+
+# Terraform variable override files
+*.tfvars
+*.tfvars.json
+
+# Sensitive files
+secret.tfvars
+terraform.tfvars
+
+# Local .terraform directories (module and provider cache)
+.terraform/
+.terraform.lock.hcl
+
+# Terragrunt cache and downloads
+.terragrunt-cache/
+terragrunt-debug.tf.json
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Misc
+.DS_Store
+.idea/
+*.bak
+*.swp
+*.tmp
