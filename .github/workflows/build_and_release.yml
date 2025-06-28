@@ -20,14 +20,20 @@ jobs:
   buildApplication:
     runs-on: ubuntu-latest
 
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.image_tag }}
+
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
       - name: Set IMAGE_TAG from branch
+        id: set-tag
         run: |
           BRANCH_NAME=$(echo "${GITHUB_REF##*/}" | sed 's|[/-]|_|g')
-          echo "IMAGE_TAG=${BRANCH_NAME}_${GITHUB_RUN_ID}" >> $GITHUB_ENV
+          IMAGE_TAG="${BRANCH_NAME}_${GITHUB_RUN_ID}"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -70,7 +76,11 @@ jobs:
   ## ===============================
   processGitOps:
     runs-on: ubuntu-latest
+
     needs: buildApplication
+
+    env:
+      IMAGE_TAG: ${{ needs.buildApplication.outputs.image_tag }}
 
     steps:
       - name: Checkout GitOps repo
