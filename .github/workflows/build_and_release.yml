@@ -7,6 +7,12 @@ on:
       - dev
       - feature/**
       - hotfix/**
+  pull_request:
+    branches:
+      - main
+      - dev
+      - feature/**
+      - hotfix/**
 
 env:
   AWS_REGION: us-east-1

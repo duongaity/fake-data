@@ -4,9 +4,15 @@ on:
   push:
     branches:
       - main
+      - dev
+      - feature/**
+      - hotfix/**
   pull_request:
     branches:
       - main
+      - dev
+      - feature/**
+      - hotfix/**
 
 jobs:
   sonarcloud:
