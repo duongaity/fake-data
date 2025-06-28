@@ -11,11 +11,10 @@ on:
 env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: fake-data
-  IMAGE_TAG: ${{ github.run_id }}
 
 jobs:
   ## ===============================
-  ## 1. Build Application + Push ECR
+  ## 1. Build Application
   ## ===============================
   buildApplication:
     runs-on: ubuntu-latest
@@ -23,6 +22,11 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+
+      - name: Set IMAGE_TAG from branch
+        run: |
+          BRANCH_NAME=$(echo "${GITHUB_REF##*/}" | sed 's|[/-]|_|g')
+          echo "IMAGE_TAG=${BRANCH_NAME}_${GITHUB_RUN_ID}" >> $GITHUB_ENV
 
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -33,12 +37,12 @@ jobs:
       # - name: Run Unit Tests
       #   run: ./mvnw test
 
-#      - name: Run SonarCloud Scan
-#        uses: sonarsource/sonarcloud-github-action@v2
-#        with:
-#          projectBaseDir: .
-#        env:
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # - name: Run SonarCloud Scan
+      #   uses: sonarsource/sonarcloud-github-action@v2
+      #   with:
+      #     projectBaseDir: .
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Build Spring Boot app
         run: ./mvnw clean package -DskipTests
@@ -49,17 +53,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-
-    #   - name: Login to Amazon ECR Public
-    #     run: |
-    #       aws ecr-public get-login-password --region us-east-1 | \
-    #       docker login --username AWS --password-stdin public.ecr.aws
-          
-    #   - name: Build and push Docker image
-    #     run: |
-    #       IMAGE_URI=public.ecr.aws/v9z8i8v0/awsdevops/fakedata:${{ env.IMAGE_TAG }}
-    #       docker build -t $IMAGE_URI .
-    #       docker push $IMAGE_URI
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -72,7 +65,7 @@ jobs:
           docker push $IMAGE_URI
 
   ## ===============================
-  ## 2. Update GitOps Repo (Helm)
+  ## 2. Update GitOps Repo
   ## ===============================
   processGitOps:
     runs-on: ubuntu-latest
@@ -98,7 +91,7 @@ jobs:
           fi
 
           cd gitops/$ENV_DIR
-          sed -i "s/tag: \".*\"/tag: \"${{ github.run_id }}\"/" values.yaml
+          sed -i "s/tag: \".*\"/tag: \"${{ env.IMAGE_TAG }}\"/" values.yaml
 
       - name: Set up Git identity
         run: |
@@ -110,5 +103,5 @@ jobs:
         run: |
           cd gitops
           git add .
-          git commit -m "chore: update image tag to ${{ github.run_id }}"
+          git commit -m "chore: update image tag to ${{ env.IMAGE_TAG }}"
           git push origin main
