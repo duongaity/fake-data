@@ -82,7 +82,6 @@ jobs:
       - name: Update image tag in values.yaml
         run: |
           echo "Repo structure:"
-          ls -al gitops
           
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             ENV_DIR="prod"
@@ -91,12 +90,11 @@ jobs:
           fi
 
           cd gitops/$ENV_DIR
-          sed -i "s/tag: \".*\"/tag: \"${{ env.IMAGE_TAG }}\"/" values.yaml
+          sed -i "/image:/,/^[^ ]/s/tag:.*/tag: \"$IMAGE_TAG\"/" values.yaml
 
       - name: Set up Git identity
         run: |
           cd gitops
-          ls -al
           git config user.name "Duong Aity"
           git config user.email "duongaity@gmail.com"
 
