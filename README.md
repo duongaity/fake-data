@@ -1,5 +1,39 @@
 # README
 
+Tài liệu này cung cấp **tổng quan toàn diện** về quá trình thiết lập và vận hành hệ thống hạ tầng hiện đại bằng cách kết hợp các công cụ:
+
+- **CI/CD (Continuous Integration & Continuous Deployment)** để tự động hóa quá trình phát triển và triển khai phần mềm.
+- **Terraform & Terragrunt** cho việc quản lý hạ tầng dưới dạng mã (Infrastructure as Code - IaC), cho phép triển khai nhanh chóng và đồng nhất trên nhiều môi trường.
+- **ArgoCD** để triển khai GitOps trên Kubernetes, giúp quản lý cấu hình hạ tầng và ứng dụng một cách an toàn và tự động.
+- **AWS Cloud Services** như EKS, VPC, IAM, S3... làm nền tảng cho các thành phần hạ tầng và ứng dụng vận hành trên môi trường đám mây.
+
+## Mục lục
+
+- [1. CICD](#1-cicd)
+- [2. Terraform và Terragrunt](#2-terraform-và-terragrunt)
+  - [2.1 Terraform](#21-terraform)
+  - [2.2 Terragrunt](#22-terragrunt)
+- [3. ArgoCD](#3-argocd)
+  - [3.1 Khi nào nên dùng ArgoCD?](#31-khi-nào-nên-dùng-argocd)
+  - [3.2 Cài đặt ArgoCD trên Kubernetes (EKS)](#32-cài-đặt-argocd-trên-kubernetes-eks)
+- [4. AWS](#4-aws)
+  - [4.1 IAM](#41-iam-identity-and-access-management)
+  - [4.2 VPC](#42-vpc-virtual-private-cloud)
+  - [4.3 S3](#43-s3-simple-storage-service)
+  - [4.4 DynamoDB](#44-dynamodb)
+  - [4.5 ECR](#45-ecr-elastic-container-registry)
+  - [4.6 EC2](#46-ec2-elastic-compute-cloud)
+  - [4.7 EKS](#47-eks-elastic-kubernetes-service)
+  - [4.8 Lambda](#48-lambda)
+  - [4.9 API Gateway](#49-api-gateway)
+  - [4.10 ELB](#410-elb-elastic-load-balancer)
+  - [4.11 CloudWatch](#411-cloudwatch)
+  - [4.12 SNS](#412-sns-simple-notification-service)
+  - [4.13 SQS](#413-sqs-simple-queue-service)
+  - [4.14 Secrets Manager](#414-secrets-manager)
+  - [4.15 Route 53](#415-route-53)
+- [5. Tài Liệu Tham Khảo](#5-tham-khảo)
+
 ## 1. CICD
 
 ### 1.1 CICD là gì?
