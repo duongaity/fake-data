@@ -27,23 +27,115 @@ Cải thiện chất lượng mã: Các bài kiểm tra tự động (unit tests
 
 Terraform và Terragrunt là hai công cụ được sử dụng trong việc quản lý hạ tầng dưới dạng mã nguồn (Infrastructure as Code - IaC).
 
-### 2.1 Terraform là gì?
+### 2.1 Terraform
+
+#### 2.1.1 Terraform là gì?
 
 Terraform là một công cụ mã nguồn mở do HashiCorp phát triển, cho phép định nghĩa và quản lý hạ tầng (như máy chủ, cơ sở dữ liệu, mạng...) thông qua các tệp cấu hình được viết bằng ngôn ngữ HCL (HashiCorp Configuration Language).
 
 ![Terraform](./resources/terraform.png)
 
-Terraform hỗ trợ nhiều nhà cung cấp dịch vụ đám mây (AWS, Azure, GCP), giúp tự động hóa việc triển khai và quản lý hạ tầng.
+Các tính năng chính:
+- Tính tự động hóa: Tự động tạo, cập nhật hoặc xóa tài nguyên dựa trên mã.
+- Đa nền tảng: Hỗ trợ nhiều nhà cung cấp dịch vụ đám mây và công nghệ khác nhau. Terraform hỗ trợ nhiều nhà cung cấp dịch vụ đám mây (AWS, Azure, GCP), giúp tự động hóa việc triển khai và quản lý hạ tầng.
+- Quản lý trạng thái: Lưu trữ trạng thái cơ sở hạ tầng (state) để theo dõi các tài nguyên đã triển khai.
+- Tính mô-đun: Cho phép tái sử dụng mã thông qua các module.
+- Cộng đồng mạnh mẽ: Có nhiều nhà cung cấp (providers) và module được cộng đồng đóng góp.
 
-### 2.2 Terragrunt là gì?
+#### 2.1.2 Cấu trúc thư mục của Terraform
+
+```plaintext
+terraform/
+├── modules/                        # Chứa các module tái sử dụng
+│   └── vpc/                        # Module tạo VPC
+│       ├── main.tf                 # Logic tạo tài nguyên VPC
+│       ├── variables.tf            # Định nghĩa các biến cần truyền vào
+│       ├── outputs.tf              # Trả ra các giá trị như vpc_id, subnet_id, ...
+├── environments/                   # Môi trường triển khai thực tế
+│   ├── nonprod/
+│   │   └── vpc/
+│   │       ├── main.tf             # Gọi module vpc và truyền giá trị biến
+│   │       ├── variables.tf        # Định nghĩa biến cục bộ (option)
+│   │       ├── terraform.tfvars    # Gán giá trị cụ thể cho biến (dev)
+│   │       ├── provider.tf         # Cấu hình nhà cung cấp dịch vụ (AWS)
+│   │       └── backend.tf          # Cấu hình remote state (S3, DynamoDB)
+│   └── prod/
+│       └── vpc/
+│           ├── main.tf
+│           ├── terraform.tfvars
+│           ├── provider.tf
+│           └── backend.tf
+│
+└── README.md                       # Tài liệu dự án
+```
+
+Giải Thích:
+- **main.tf**: Chứa mã chính của Terraform, định nghĩa các tài nguyên (resources) cần tạo, như máy chủ, mạng, cơ sở dữ liệu...
+- **variables.tf**: Khai báo các biến (variables) được sử dụng trong mã Terraform, bao gồm kiểu dữ liệu, giá trị mặc định và mô tả.
+- **outputs.tf**: Xác định các giá trị đầu ra (outputs) mà Terraform sẽ trả về sau khi áp dụng, ví dụ: địa chỉ IP của máy chủ, URL của dịch vụ...
+- **terraform.tfvars**: Chứa các giá trị cụ thể cho các biến được khai báo trong variables.tf. Tệp này thường được sử dụng để cung cấp giá trị tùy chỉnh cho môi trường cụ thể.
+- **provider.tf**: Định nghĩa nhà cung cấp (provider) như AWS, Azure, GCP, và các thông tin xác thực (credentials) hoặc cấu hình cần thiết để kết nối với nhà cung cấp.
+- **backend.tf**: Cấu hình backend để lưu trữ trạng thái (state) của Terraform, ví dụ: lưu trên S3, Terraform Cloud, hoặc local.
+
+### 2.2 Terragrunt
+
+#### 2.2.1 Terragrunt là gì?
 
 Terragrunt là một công cụ mã nguồn mở do Gruntwork phát triển, hoạt động như một lớp bao bọc (wrapper) cho Terraform.
 
+Các tính năng chính:
+- DRY Configurations: Terragrunt tập trung vào việc giữ mã nguồn **DRY (Don't Repeat Yourself - Không lặp lại)**, giảm sự trùng lặp trong cấu hình.
+- Quản lý trạng thái từ xa: Tự động cấu hình và quản lý backend (như S3, GCS) để lưu trữ tệp trạng thái Terraform.
+- Quản lý nhiều môi trường: Hỗ trợ triển khai cùng một mã Terraform trên nhiều môi trường với các biến khác nhau. 
 Giúp giải quyết các vấn đề phức tạp khi quản lý nhiều mô-đun Terraform hoặc nhiều môi trường (dev, staging, prod).
+- Hỗ trợ module và dependencies: Quản lý dependencies giữa các module và cho phép tham chiếu module từ xa hoặc cục bộ.
+- Chạy lệnh trên nhiều module: Hỗ trợ lệnh run-all để thực thi Terraform trên nhiều module cùng lúc, tôn trọng thứ tự phụ thuộc.
 
 ![Terragrunt](./resources/terragrunt.png)
 
-Terragrunt tập trung vào việc giữ mã nguồn **DRY (Don't Repeat Yourself - Không lặp lại)**, giảm sự trùng lặp trong cấu hình.
+#### 2.2.2 Cấu trúc thư mục của Terragrunt
+
+Terragrunt yêu cầu một cách tổ chức thư mục có hệ thống hơn so với Terraform thuần để tận dụng tối đa các tính năng của nó.
+
+```plantext
+terraform/
+├── modules/                        # Chứa các module Terraform tái sử dụng
+│   ├── vpc/                        # Module để tạo VPC (Virtual Private Cloud)
+│   │   ├── main.tf                 # Logic tài nguyên: aws_vpc, subnet, igw,...
+│   │   ├── variables.tf            # Biến input mà module này cần
+│   │   └── outputs.tf              # Output ra các giá trị như vpc_id, cidr,...
+│   ├── eks/                        # Module để tạo Amazon EKS (Kubernetes cluster)
+│   ├── rds/                        # Module để tạo Amazon RDS (Cơ sở dữ liệu)
+│   └── s3/                         # Module để tạo S3 bucket (object storage)
+├── environments/                   # Thư mục chứa các môi trường triển khai thực tế
+│   ├── prod/                       # Môi trường production
+│   │   └── us-east-1/              # Khu vực (region) cụ thể: us-east-1 (Virginia)
+│   │       ├── vpc/               
+│   │       │   └── terragrunt.hcl  # Gọi module VPC cho môi trường prod/us-east-1
+│   │       ├── eks/
+│   │       │   └── terragrunt.hcl  # Gọi module EKS (Kubernetes) cho prod/us-east-1
+│   │       └── rds/
+│   │           └── terragrunt.hcl  # Gọi module RDS cho prod/us-east-1
+│   └── nonprod/                    # Môi trường non-prod: dev, test, staging,...
+│       └── us-east-1/            
+│           ├── vpc/
+│           │   └── terragrunt.hcl  # Gọi module VPC cho môi trường non-prod
+│           ├── eks/
+│           │   └── terragrunt.hcl  # Gọi module EKS cho non-prod
+│           ├── rds/
+│           │   └── terragrunt.hcl  # Gọi module RDS cho non-prod
+│           └── app/
+│               └── terragrunt.hcl  # Gọi module app (Spring Boot app hoặc tương tự)
+└── terragrunt.hcl                  # File cấu hình gốc (root Terragrunt config)
+                                    # Dùng để include vào các terragrunt.hcl con
+                                    # Cấu hình remote_state, locals, input chung,...
+```
+
+Giải Thích:
+- **terragrunt.hcl (thư mục gốc)**: Tệp cấu hình Terragrunt chính, chứa các thiết lập chung như backend (ví dụ: S3 để lưu trữ trạng thái) và cấu hình provider (như AWS region). Được kế thừa bởi các tệp terragrunt.hcl trong thư mục con (environments/dev, environments/prod) để tránh lặp lại mã (DRY).
+- **Thư mục environments/**: Chứa các tệp cấu hình Terragrunt riêng cho từng môi trường (dev, prod).
+dev/terragrunt.hcl:
+- **Thư mục modules/**: Chứa các module Terraform tái sử dụng, mỗi module định nghĩa một nhóm tài nguyên liên quan.
 
 ## 3. ArgoCD
 
@@ -227,12 +319,106 @@ Chức năng chính:
 
 ### 4.7 EKS (Elastic Kubernetes Service)
 
+#### 4.7.1 EKS (Elastic Kubernetes Service) là gì?
+
 Mô tả: EKS là dịch vụ Kubernetes được quản lý bởi AWS, giúp triển khai, quản lý, và mở rộng các ứng dụng container hóa trên Kubernetes.
 
 Chức năng chính:
 - Tự động quản lý control plane của Kubernetes, đảm bảo tính sẵn sàng cao.
 - Tích hợp với các dịch vụ AWS như IAM, VPC, và CloudWatch.
 - Hỗ trợ triển khai container từ Docker hoặc các registry như Amazon ECR.
+
+#### 4.7.2 Tổng quan hệ thống Kubernetes (EKS)
+
+##### 4.7.2.1 Cluster
+
+Là “cái tổng” — toàn bộ hệ thống EKS của bạn.
+
+- Một cluster bao gồm Control Plane và nhiều Node.
+
+- Là nơi chứa tất cả ứng dụng (pod, service, job,…).
+
+- AWS quản lý phần Control Plane cho bạn trong EKS. AWS quản lý hoàn toàn phần này, bạn không cần triển khai thủ công. AWS tính phí theo giờ cho control plane.
+
+##### 4.7.2.2 Node
+
+Là một máy ảo (EC2) chạy trong cụm EKS — nơi các Pod được thực thi.
+
+- Có thể là Managed Node Group hoặc Self-managed Node.
+
+  - Managed Node Group (do AWS quản lý cập nhật, scaling)
+
+  - Self-managed Node Group
+
+- Chạy các thành phần hệ thống như kubelet, kube-proxy.
+
+- Một node có thể chứa nhiều Pod.
+
+##### 4.7.2.3 Pod
+
+Là đơn vị triển khai nhỏ nhất trong Kubernetes. Chứa 1 hoặc nhiều container.
+
+- Các container trong pod chia sẻ: IP, volume, namespace.
+
+- Thường bạn chỉ chạy 1 container/pod, ví dụ: 1 container Spring Boot.
+
+- Pod được scheduler gán lên Node để chạy.
+
+##### 4.7.2.4 Deployment
+
+Là cách bạn triển khai một nhóm Pod và đảm bảo số lượng Pod mong muốn luôn tồn tại.
+
+- Bạn không triển khai pod trực tiếp mà dùng Deployment.
+
+- Ví dụ: replicas: 3 ⇒ 3 Pod sẽ được tạo và tự scale nếu pod chết.
+
+##### 4.7.2.5 Service
+
+Cung cấp endpoint ổn định để truy cập các Pod.
+
+- Vì Pod IP có thể thay đổi, Service sẽ che chắn điều đó.
+
+- Kiểu phổ biến:
+
+  - ClusterIP: chỉ dùng nội bộ cluster
+
+  - NodePort: expose ra qua cổng Node
+
+  - LoadBalancer: tích hợp với ALB/NLB
+
+##### 4.7.2.6 Namespace
+
+Dùng để phân chia không gian tài nguyên bên trong cluster.
+
+- Mỗi team, môi trường có thể dùng namespace riêng.
+
+- Namespace mặc định: default, kube-system, kube-public.
+
+##### 4.7.2.7 Namespace
+
+Cấu hình cho ứng dụng.
+
+- ConfigMap: chứa thông tin không nhạy cảm (URL, tên DB,…)
+
+- Secret: chứa thông tin nhạy cảm (password, token,…)
+
+##### 4.7.2.8 Volume / PVC
+
+Dùng để lưu trữ dữ liệu lâu dài cho Pod.
+
+- Pod chết thì dữ liệu trong container mất → cần Volume.
+
+- PersistentVolumeClaim (PVC) là cách Pod yêu cầu ổ đĩa.
+
+##### 4.7.2.9 Ingress
+
+Là entry point HTTP/HTTPS để truy cập vào service trong cluster.
+
+- Cho phép định tuyến domain như api.example.com → service-a
+
+- AWS có thể dùng ALB Ingress Controller.
+
+#### 4.7.3 Kiểm tra trạng thái trong EKS
 
 Kiểm tra trạng thái EKS Cluster:
 
@@ -342,3 +528,37 @@ Chức năng chính:
 - Tạo và quản lý DNS records (A, CNAME, MX, v.v.).
 - Hỗ trợ health checks để định tuyến lưu lượng đến các tài nguyên khỏe mạnh.
 - Tích hợp với ELB và CloudFront.
+
+## 5. Tham Khảo
+
+### 📘 Tài liệu chính thức
+
+- [Amazon EKS – Documentation](https://docs.aws.amazon.com/eks/)
+- [Amazon VPC – Documentation](https://docs.aws.amazon.com/vpc/)
+- [Amazon IAM – Documentation](https://docs.aws.amazon.com/iam/)
+- [Kubernetes – Official Docs](https://kubernetes.io/docs/)
+
+---
+
+### 📗 Terraform & Terragrunt
+
+- [Terraform – AWS Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs)
+- [Terraform Modules – Best Practices](https://developer.hashicorp.com/terraform/language/modules/develop)
+- [Terragrunt – Documentation](https://terragrunt.gruntwork.io/docs/)
+- [Terragrunt Include Example](https://terragrunt.gruntwork.io/docs/features/keep-your-terraform-code-dry/)
+
+---
+
+### 📙 CI/CD & GitOps
+
+- [GitHub Actions – Docs](https://docs.github.com/en/actions)
+- [ArgoCD – Docs](https://argo-cd.readthedocs.io/en/stable/)
+- [Helm – Docs](https://helm.sh/docs/)
+
+---
+
+### 📒 Các hướng dẫn triển khai thực tế
+
+- [AWS EKS with Terraform (by AWS)](https://learn.hashicorp.com/tutorials/terraform/eks)
+- [Secure IAM for EKS with IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
+- [EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)

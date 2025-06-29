@@ -3,7 +3,7 @@ include {
 }
 
 terraform {
-  source = "../../../modules/ecr"
+  source = "../../../../modules/ecr"
 }
 
 dependency "eks" {
