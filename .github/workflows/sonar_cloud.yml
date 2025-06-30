@@ -7,10 +7,23 @@ on:
       - dev
       - feature/**
       - hotfix/**
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'What type of perform?'
+        type: choice
+        options:
+          - no
+          - yes
+        default: no
 
 jobs:
   sonarcloud:
     runs-on: ubuntu-latest
+
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.release-type == 'yes'
 
     steps:
     - name: Checkout code

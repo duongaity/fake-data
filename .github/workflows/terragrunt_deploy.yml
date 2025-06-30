@@ -13,10 +13,11 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
+          - none
           - init
           - plan
           - apply
-        default: init
+        default: none
 
 env:
   AWS_REGION: us-east-1
@@ -52,7 +53,9 @@ jobs:
       - name: Run Terragrunt Init
         if: >
           github.event_name == 'workflow_dispatch' &&
-          github.event.inputs.release-type == 'init'
+          (github.event.inputs.release-type == 'init' ||
+          github.event.inputs.release-type == 'plan' ||
+          github.event.inputs.release-type == 'apply')
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all init
@@ -60,7 +63,8 @@ jobs:
       - name: Run Terragrunt Plan
         if: >
           github.event_name == 'workflow_dispatch' &&
-          github.event.inputs.release-type == 'plan'
+          (github.event.inputs.release-type == 'plan' ||
+          github.event.inputs.release-type == 'apply')
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all plan
@@ -71,4 +75,4 @@ jobs:
           github.event.inputs.release-type == 'apply'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
-          terragrunt run-all apply --auto-approve
+          terragrunt apply --all --auto-approve --terragrunt-non-interactive
