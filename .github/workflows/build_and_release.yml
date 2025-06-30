@@ -13,10 +13,10 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
-          - test
+          - unittest
           - build
           - deploy
-        default: test
+        default: unittest
 
 env:
   AWS_REGION: us-east-1
