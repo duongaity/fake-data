@@ -13,10 +13,10 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
-          - deploy
           - init
           - plan
           - apply
+        default: init
 
 env:
   AWS_REGION: us-east-1
@@ -24,10 +24,6 @@ env:
 jobs:
   terraformDeploy:
     runs-on: ubuntu-latest
-
-    if: >
-      github.event_name == 'workflow_dispatch' &&
-      github.event.inputs.release-type == 'deploy'
 
     steps:
       - name: Checkout Code
@@ -54,17 +50,25 @@ jobs:
           sudo mv terragrunt /usr/local/bin/
 
       - name: Run Terragrunt Init
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'init'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all init
 
       - name: Run Terragrunt Plan
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'plan'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all plan
 
       - name: Run Terragrunt Apply
-        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.event.inputs.release-type == 'apply' }}
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'apply'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all apply --auto-approve

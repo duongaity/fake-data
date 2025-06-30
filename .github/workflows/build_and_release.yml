@@ -17,8 +17,10 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
+          - test
           - build
           - deploy
+        default: test
 
 env:
   AWS_REGION: us-east-1
