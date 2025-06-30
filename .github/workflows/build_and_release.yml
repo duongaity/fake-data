@@ -7,10 +7,6 @@ on:
       - dev
       - feature/**
       - hotfix/**
-  workflow_run:
-    workflows: ["Terragrunt Deploy"]
-    types:
-      - completed
   workflow_dispatch:
     inputs:
       release-type:
@@ -32,8 +28,6 @@ jobs:
   ## 1. Build Application
   ## ===============================
   buildApplication:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-  
     runs-on: ubuntu-latest
 
     outputs:
