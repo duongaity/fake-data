@@ -71,4 +71,4 @@ jobs:
           github.event.inputs.release-type == 'apply'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
-          terragrunt run-all apply --auto-approve
+          terragrunt apply --all --auto-approve --terragrunt-non-interactive
