@@ -7,15 +7,16 @@ on:
       - dev
       - feature/**
       - hotfix/**
-  # workflow_dispatch:
-  #   inputs:
-  #     release-type:
-  #       description: 'What type of perform?'
-  #       type: choice
-  #       options:
-  #         - init
-  #         - plan
-  #         - apply
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'What type of perform?'
+        type: choice
+        options:
+          - deploy
+          - init
+          - plan
+          - apply
 
 env:
   AWS_REGION: us-east-1
@@ -23,6 +24,10 @@ env:
 jobs:
   terraformDeploy:
     runs-on: ubuntu-latest
+
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.release-type == 'deploy'
 
     steps:
       - name: Checkout Code

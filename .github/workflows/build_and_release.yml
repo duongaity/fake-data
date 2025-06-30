@@ -85,6 +85,10 @@ jobs:
 
     needs: buildApplication
 
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.release-type == 'build'
+
     env:
       IMAGE_TAG: ${{ needs.buildApplication.outputs.image_tag }}
 
