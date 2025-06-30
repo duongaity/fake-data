@@ -8,10 +8,13 @@ terraform {
 
 dependency "vpc" {
   config_path = "../vpc"
-}
 
-dependency "backend" {
-  config_path = "../backend"
+  # Nếu chưa chạy apply ở vpc, dùng mock_outputs tạm thời
+  mock_outputs = {
+    vpc_id              = "vpc-123456"
+    public_subnet_ids   = ["subnet-111111", "subnet-222222"]
+    private_subnet_ids  = ["subnet-333333", "subnet-444444"]
+  }
 }
 
 inputs = {

@@ -7,6 +7,13 @@ on:
       - dev
       - feature/**
       - hotfix/**
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: 'What type of perform?'
+        type: choice
+        options:
+          - build
 
 env:
   AWS_REGION: us-east-1
