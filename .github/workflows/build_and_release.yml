@@ -16,7 +16,7 @@ on:
           - unittest
           - build
           - deploy
-        default: unittest
+        default: deploy
 
 env:
   AWS_REGION: us-east-1
