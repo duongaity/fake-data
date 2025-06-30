@@ -38,4 +38,4 @@
 #       - name: Run Terragrunt Destroy
 #         working-directory: terraform/devops/nonprod/us-east-1
 #         run: |
-#           terragrunt run-all destroy --auto-approve
+#           terragrunt apply --all --auto-approve --terragrunt-non-interactive
