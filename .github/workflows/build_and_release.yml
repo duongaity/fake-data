@@ -69,14 +69,14 @@ jobs:
 
       - name: Login to Amazon ECR
         if: >
-          github.event_name != 'workflow_dispatch' ||
+          github.event_name != 'workflow_dispatch' &&
           (github.event.inputs.release-type == 'build' || github.event.inputs.release-type == 'deploy')
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
         if: >
-          github.event_name != 'workflow_dispatch' ||
+          github.event_name != 'workflow_dispatch' &&
           (github.event.inputs.release-type == 'build' || github.event.inputs.release-type == 'deploy')
         run: |
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
