@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       release-type:
-        description: 'What type of terraform release do you wish to perform?'
+        description: 'What type of perform?'
         type: choice
         options:
           - init
