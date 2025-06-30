@@ -13,10 +13,11 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
+          - none
           - init
           - plan
           - apply
-        default: init
+        default: none
 
 env:
   AWS_REGION: us-east-1
