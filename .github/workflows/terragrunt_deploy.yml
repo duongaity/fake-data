@@ -3,9 +3,10 @@ name: Terragrunt Deploy
 on:
   push:
     branches:
-      - '**'
-    paths:
-      - 'terraform/**'
+      - main
+      - dev
+      - feature/**
+      - hotfix/**
   # workflow_dispatch:
   #   inputs:
   #     release-type:
