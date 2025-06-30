@@ -17,7 +17,7 @@ on:
           - apply
 
 jobs:
-  terraform:
+  terraformDeploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -43,6 +43,11 @@ jobs:
           wget -O terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v${TERRAFORM_VERSION}/terragrunt_linux_amd64
           chmod +x terragrunt
           sudo mv terragrunt /usr/local/bin/
+
+      - name: Run Terragrunt Init
+        working-directory: terraform/devops/nonprod/us-east-1
+        run: |
+          terragrunt run-all init
 
       - name: Run Terragrunt Plan
         working-directory: terraform/devops/nonprod/us-east-1
