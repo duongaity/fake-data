@@ -3,9 +3,10 @@ name: Terragrunt Deploy
 on:
   push:
     branches:
-      - '**'
-    paths:
-      - 'terraform/**'
+      - main
+      - dev
+      - feature/**
+      - hotfix/**
   workflow_dispatch:
     inputs:
       release-type:
@@ -15,9 +16,13 @@ on:
           - init
           - plan
           - apply
+        default: init
+
+env:
+  AWS_REGION: us-east-1
 
 jobs:
-  terraform:
+  terraformDeploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,13 +49,26 @@ jobs:
           chmod +x terragrunt
           sudo mv terragrunt /usr/local/bin/
 
+      - name: Run Terragrunt Init
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'init'
+        working-directory: terraform/devops/nonprod/us-east-1
+        run: |
+          terragrunt run-all init
+
       - name: Run Terragrunt Plan
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'plan'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all plan
 
       - name: Run Terragrunt Apply
-        if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.event.inputs.release-type == 'apply' }}
+        if: >
+          github.event_name == 'workflow_dispatch' &&
+          github.event.inputs.release-type == 'apply'
         working-directory: terraform/devops/nonprod/us-east-1
         run: |
           terragrunt run-all apply --auto-approve

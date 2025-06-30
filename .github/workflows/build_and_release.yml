@@ -13,7 +13,10 @@ on:
         description: 'What type of perform?'
         type: choice
         options:
+          - unittest
           - build
+          - deploy
+        default: unittest
 
 env:
   AWS_REGION: us-east-1
@@ -55,6 +58,9 @@ jobs:
         run: ./mvnw clean package -DskipTests
 
       - name: Configure AWS credentials
+        if: >
+          github.event_name != 'workflow_dispatch' ||
+          (github.event.inputs.release-type == 'build' || github.event.inputs.release-type == 'deploy')
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -62,10 +68,16 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        if: >
+          github.event_name != 'workflow_dispatch' &&
+          (github.event.inputs.release-type == 'build' || github.event.inputs.release-type == 'deploy')
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
+        if: >
+          github.event_name != 'workflow_dispatch' &&
+          (github.event.inputs.release-type == 'build' || github.event.inputs.release-type == 'deploy')
         run: |
           IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
           docker build -t $IMAGE_URI .
@@ -78,6 +90,10 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: buildApplication
+
+    if: >
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.release-type == 'deploy'
 
     env:
       IMAGE_TAG: ${{ needs.buildApplication.outputs.image_tag }}
