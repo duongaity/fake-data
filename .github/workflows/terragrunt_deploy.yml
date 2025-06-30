@@ -17,6 +17,9 @@ on:
   #         - plan
   #         - apply
 
+env:
+  AWS_REGION: us-east-1
+
 jobs:
   terraformDeploy:
     runs-on: ubuntu-latest
