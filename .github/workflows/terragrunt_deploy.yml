@@ -6,15 +6,15 @@ on:
       - '**'
     paths:
       - 'terraform/**'
-  workflow_dispatch:
-    inputs:
-      release-type:
-        description: 'What type of perform?'
-        type: choice
-        options:
-          - init
-          - plan
-          - apply
+  # workflow_dispatch:
+  #   inputs:
+  #     release-type:
+  #       description: 'What type of perform?'
+  #       type: choice
+  #       options:
+  #         - init
+  #         - plan
+  #         - apply
 
 jobs:
   terraformDeploy:
