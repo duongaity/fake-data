@@ -270,7 +270,6 @@ Tham Khảo:
 - [Trang chủ ArgoCD](https://argo-cd.readthedocs.io/en/stable/)
 - [GitHub chính thức của ArgoCD](https://github.com/argoproj/argo-cd)
 
-
 Setup Instructions
 
 ```bash
@@ -288,6 +287,14 @@ terragrunt apply
 cd nonprod/eks
 terragrunt init
 terragrunt apply
+```
+
+Terragrunt across all modules:
+
+```bash
+terragrunt run-all init
+terragrunt run-all plan
+terragrunt run-all apply --auto-approve
 ```
 
 ## 4. AWS
@@ -596,3 +603,50 @@ Chức năng chính:
 - [AWS EKS with Terraform (by AWS)](https://learn.hashicorp.com/tutorials/terraform/eks)
 - [Secure IAM for EKS with IRSA](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html)
 - [EKS Best Practices Guide](https://aws.github.io/aws-eks-best-practices/)
+
+## BUILD
+
+Setup Instructions
+
+```bash
+# Deploy the backend resources first:
+cd nonprod/backend
+terragrunt init
+terragrunt apply
+
+# Deploy the VPC resources:
+cd nonprod/vpc
+terragrunt init
+terragrunt apply
+
+# Deploy the EKS resources:
+cd nonprod/eks
+terragrunt init
+terragrunt apply
+```
+
+Lệnh Terragrunt
+
+```bash
+terragrunt run-all init
+```
+
+Lệnh này khởi tạo (initialize) tất cả các module Terragrunt trong thư mục hiện tại (ví dụ: terraform/devops/nonprod/us-east-1). Nó tải provider, thiết lập backend (như S3), và xử lý các phụ thuộc (ví dụ: vpc trước eks). Lệnh này chuẩn bị môi trường cho plan hoặc apply.
+
+```bash
+terragrunt run-all plan
+```
+
+Lệnh này tạo kế hoạch (plan) cho tất cả các module, hiển thị các thay đổi sẽ được thực hiện trên hạ tầng (như tạo, sửa, xóa tài nguyên)
+
+```bash
+terragrunt run-all apply --auto-approve
+```
+
+Lệnh này tạo kế hoạch (plan) cho tất cả các module, hiển thị các thay đổi sẽ được thực hiện trên hạ tầng (như tạo, sửa, xóa tài nguyên). Nó tôn trọng thứ tự phụ thuộc (ví dụ: vpc trước eks) và sử dụng mock_outputs nếu module phụ thuộc chưa được áp dụng.
+
+```bash
+terragrunt run-all destroy --auto-approve
+```
+
+Lệnh này áp dụng (apply) các thay đổi cho tất cả các module, tạo hoặc cập nhật hạ tầng theo kế hoạch. Cờ --auto-approve bỏ qua xác nhận thủ công. Nó thực hiện theo thứ tự phụ thuộc (ví dụ: vpc trước eks), sử dụng output thực tế từ các module phụ thuộc.

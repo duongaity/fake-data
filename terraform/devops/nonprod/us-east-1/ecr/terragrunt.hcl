@@ -8,6 +8,13 @@ terraform {
 
 dependency "eks" {
   config_path = "../eks"
+
+  # Nếu chưa chạy apply ở eks, dùng mock_outputs tạm thời
+  mock_outputs = {
+    cluster_name     = "mock-cluster"
+    cluster_endpoint = "https://mock.eks.amazonaws.com"
+    node_group_name  = "mock-node-group"
+  }
 }
 
 inputs = {

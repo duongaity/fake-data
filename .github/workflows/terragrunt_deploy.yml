@@ -1,4 +1,4 @@
-name: Terragrunt Plan
+name: Terragrunt Deploy
 
 on:
   push:
@@ -19,9 +19,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

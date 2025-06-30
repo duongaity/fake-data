@@ -6,10 +6,6 @@ terraform {
   source = "../../../../modules/vpc"
 }
 
-dependency "backend" {
-  config_path = "../backend"
-}
-
 inputs = {
   environment          = "nonprod"
   vpc_cidr             = "10.0.0.0/16"
