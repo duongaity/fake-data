@@ -18,7 +18,7 @@ public class PingController {
 
     @PutMapping
     public String pingPut() {
-        return "pong";
+        return "ok";
     }
 
 }
