@@ -16,4 +16,14 @@ public class PingController {
         return "pong";
     }
 
+    @PutMapping
+    public String pingPut() {
+        return "ok";
+    }
+
+    @DeleteMapping
+    public String pingDelete() {
+        return "ok";
+    }
+
 }
