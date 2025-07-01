@@ -21,4 +21,9 @@ public class PingController {
         return "ok";
     }
 
+    @DeleteMapping
+    public String pingDelete() {
+        return "ok";
+    }
+
 }
