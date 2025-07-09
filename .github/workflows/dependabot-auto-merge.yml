@@ -1,0 +1,219 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+  status: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    
+    # Only run for Dependabot PRs
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get PR details
+        id: pr-details
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request?.number || context.payload.number
+            });
+            
+            console.log('PR Details:', {
+              number: pr.number,
+              title: pr.title,
+              user: pr.user.login,
+              mergeable: pr.mergeable,
+              mergeable_state: pr.mergeable_state
+            });
+            
+            return {
+              number: pr.number,
+              title: pr.title,
+              mergeable: pr.mergeable,
+              mergeable_state: pr.mergeable_state
+            };
+
+      - name: Wait for status checks
+        id: wait-for-checks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || context.payload.number;
+            
+            // Get the latest commit SHA
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            
+            const sha = pr.head.sha;
+            console.log('Checking status for SHA:', sha);
+            
+            // Wait for checks to complete (with timeout)
+            const maxAttempts = 30; // 15 minutes max wait time
+            const delayMs = 30000; // 30 seconds between checks
+            
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              console.log(`Attempt ${attempt}/${maxAttempts}: Checking status...`);
+              
+              // Get check runs
+              const { data: checkRuns } = await github.rest.checks.listForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha
+              });
+              
+              // Get status checks
+              const { data: statusChecks } = await github.rest.repos.getCombinedStatusForRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: sha
+              });
+              
+              console.log('Check runs:', checkRuns.check_runs.map(run => ({
+                name: run.name,
+                status: run.status,
+                conclusion: run.conclusion
+              })));
+              
+              console.log('Status checks:', {
+                state: statusChecks.state,
+                statuses: statusChecks.statuses.map(status => ({
+                  context: status.context,
+                  state: status.state
+                }))
+              });
+              
+              // Check if all checks are completed
+              const allCheckRunsCompleted = checkRuns.check_runs.every(run => 
+                run.status === 'completed'
+              );
+              
+              const allCheckRunsSuccessful = checkRuns.check_runs.every(run => 
+                run.status === 'completed' && 
+                (run.conclusion === 'success' || run.conclusion === 'neutral' || run.conclusion === 'skipped')
+              );
+              
+              const statusChecksSuccessful = statusChecks.state === 'success' || 
+                                           statusChecks.statuses.length === 0;
+              
+              if (allCheckRunsCompleted && allCheckRunsSuccessful && statusChecksSuccessful) {
+                console.log('✅ All checks passed!');
+                return { success: true, message: 'All checks passed' };
+              }
+              
+              // Check for any failures
+              const hasFailedCheckRuns = checkRuns.check_runs.some(run => 
+                run.status === 'completed' && run.conclusion === 'failure'
+              );
+              
+              const hasFailedStatusChecks = statusChecks.state === 'failure';
+              
+              if (hasFailedCheckRuns || hasFailedStatusChecks) {
+                console.log('❌ Some checks failed');
+                return { success: false, message: 'Some checks failed' };
+              }
+              
+              if (attempt < maxAttempts) {
+                console.log(`⏳ Waiting ${delayMs/1000} seconds before next check...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+              }
+            }
+            
+            console.log('⏰ Timeout waiting for checks to complete');
+            return { success: false, message: 'Timeout waiting for checks' };
+
+      - name: Auto-merge PR
+        if: fromJSON(steps.wait-for-checks.outputs.result).success == true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || context.payload.number;
+            
+            try {
+              // First, let's check if the PR is still mergeable
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+              });
+              
+              if (!pr.mergeable) {
+                console.log('❌ PR is not mergeable');
+                return;
+              }
+              
+              // Enable auto-merge with squash
+              console.log('🔄 Enabling auto-merge...');
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                commit_title: `${pr.title} (#${prNumber})`,
+                commit_message: `Automatically merged Dependabot PR`,
+                merge_method: 'squash'
+              });
+              
+              console.log('✅ PR successfully merged!');
+              
+              // Add a comment to the PR
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: '🤖 This Dependabot PR has been automatically merged after all checks passed successfully!'
+              });
+              
+            } catch (error) {
+              console.error('❌ Failed to merge PR:', error.message);
+              
+              // Add a comment about the failure
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: `❌ Failed to automatically merge this Dependabot PR: ${error.message}`
+              });
+              
+              throw error;
+            }
+
+      - name: Handle check failure
+        if: fromJSON(steps.wait-for-checks.outputs.result).success == false
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || context.payload.number;
+            const result = ${{ steps.wait-for-checks.outputs.result }};
+            
+            console.log('❌ Not merging PR due to:', result.message);
+            
+            // Add a comment explaining why it wasn't merged
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `🤖 This Dependabot PR was not automatically merged because: ${result.message}\n\nPlease check the failing tests and resolve any issues.`
+            });
